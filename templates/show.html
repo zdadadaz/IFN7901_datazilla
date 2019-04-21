@@ -1,0 +1,101 @@
+   {% extends "layout.html" %}
+   {% block content %}
+   <div class="row">
+       <div class="col-md-3">
+           <p class="lead">Best Car For U</p>
+           <div class="list-group">
+               <li class="list-group-item active">CAR Information</li>
+               <li class="list-group-item">Location: {{post[4]}}</li>
+               <li class="list-group-item">Color: {{post[5]}}</li>
+               <li class="list-group-item">Car type: {{post[6]}}</li>
+               <li class="list-group-item">Brand: {{post[7]}}</li>
+               <li class="list-group-item">Price: {{post[8]}}</li>
+               <li class="list-group-item">Manu year: {{post[9]}}</li>
+           </div>
+       </div>
+       <div class="col-md-9">
+           <div class="thumbnail">
+               <img class="img-responsive" src=#>
+               <div class="caption-full">
+                   <h4 class="pull-right">{{post[2]}}</h4>
+                   <p>{{post[3]}}</p>
+                   <p>
+                       <em>Submitted by:{{post[13]}},{{post[14]}}</em>
+                   </p>
+                   {% if(post[10]==(currentUser)) %}
+                   <a class="btn btn-xs btn-warning" href="/Posts/{{post[0]}}/edit">Edit</a>
+                   <form class="delete-form" action="/Posts/{{post[0]}}" method="POST">
+                       <button class="btn btn-xs btn-danger">Delete</button>
+                   </form>
+                   {% endif %}
+               </div>
+           </div>
+           <!-- <div class="well"> -->
+           <!--Setting up the add new comment button that is used for collapsing-->
+           <!-- <div class="text-right">
+                 <a class="btn btn-success pull-right" role="button" data-toggle="collapse" href="#collapseComment"
+                     aria-expanded="false" aria-controls="collapseComment">
+                     <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add new comment</a>
+             </div> -->
+           <!--Comment section title-->
+           <!-- <h4><strong>Comments <span class="glyphicon glyphicon glyphicon-comment"
+                         aria-hidden="true"></span></strong></h4> -->
+
+           <!--Collapse Add a comment form START-->
+           <!-- <div class="collapse" id="collapseComment">
+                 <div class="well" style="border-left: 5px solid #00C851;"> -->
+           <!-- <% if(!currentUser) { %> -->
+           <!-- If the user is not logged in, direct him to the login page -->
+           <!-- <h5>You need to login before you can comment. <a href="/login">Click here</a> to go to the login
+                         page.</h5>
+                     <% } %> -->
+           <!-- <% if(currentUser) { %> -->
+           <!--If the user is logged in, show the new comment form-->
+           <!-- <h4>Write your comment <span class="glyphicon glyphicon glyphicon-pencil"
+                             aria-hidden="true"></span></h4> -->
+           <!-- <form id="add-comment-form" action="/voclist/<%= voc._id %>/comments" method="POST">
+                         <div class="form-group">
+                             <input class="form-control" type="text" disabled value="<%= currentUser.username %>">
+                         </div>
+                         <div class="form-group">
+                             <textarea class="form-control" name="comment[text]" placeholder="Write your comment..."
+                                 form="add-comment-form" rows="5" cols="70"></textarea>
+                         </div>
+                         <div class="form-group">
+                             <button class="btn btn-success btn-sm" href="/voclist/<%=voc._id %>/comments/new">Comment
+                                 <span class="glyphicon glyphicon-comment" aria-hidden="true"></span></button>
+                         </div>
+                     </form> -->
+           <!-- <% } %> -->
+           <!-- </div>
+             </div> -->
+           <!--Collapse Add a comment form END-->
+
+           <!-- <div class="text-right">
+                    <a class="btn btn-success" href="/voclist/<%=voc._id %>/comments/new">Comment</a>                
+                </div> -->
+           <!-- <% voc.comments.forEach(function(comment){ %>
+             <div class="row">
+                 <div class="col-md-12">
+                     <%= comment.author.username %>
+                     <span class="pull-right"><%= moment(comment.createdAt).fromNow() %></span>
+                     <p>
+                         <%= comment.text %>
+                     </p>
+                     <% if(currentUser && comment.author.id.equals(currentUser._id)){ %>
+                     <a href="/voclist/<%= voc._id %>/comments/<%=comment._id%>/edit"
+                         class="btn btn-xs btn-warning">Edit</a>
+                     <form action="/voclist/<%=voc._id%>/comments/<%=comment._id%>?_method=DELETE" method="POST"
+                         class="delete-form">
+                         <input type="submit" class="btn btn-xs btn-danger" value="Delete">
+                     </form>
+                     <% }%>
+                 </div>
+             </div>
+             <% }) %> -->
+           <!-- </div> -->
+       </div>
+   </div>
+
+
+   {% endblock content %}

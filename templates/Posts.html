@@ -1,0 +1,104 @@
+{% extends "layout.html" %}
+{% block content %}
+    <header class="jumbotron">
+      <div id="jumbotron_id" class="jumbotron">
+        <h1>Welcome To Second-Hand Car Republic!</h1>
+        <p>Find the car you like the most in few clicks</p>
+        <p>
+          <a class="btn btn-primary btn-lg" href="/Posts/new">Add New Posts</a>
+        </p>
+        <p>
+          <form method="POST" action="">
+            <!-- <div class="content-section"> -->
+              <div class="dropdown">
+                <div class="row">
+                  <div class="col-md-12">
+                    <select name="carType" class="btn btn-light dropdown-toggle">
+                      <option value="" disabled selected>Car type</option>
+                      <option value="manu">Manu</option>
+                      <option value="auto">Auto</option>
+                    </select>
+                    <select name="price" class="btn btn-light dropdown-toggle">
+                      <option value="" disabled selected>Price range</option>
+                      <option value="p0">0-2000</option>
+                      <option value="p2">2000-4000</option>
+                      <option value="p4">4000-6000</option>
+                      <option value="p6">6000up</option>
+                    </select>
+                    <select name="brand" class="btn btn-light dropdown-toggle">
+                      <option value="" disabled selected>Car Brand</option>
+                      <option value="honda">Honda</option>
+                      <option value="benz">Benz</option>
+                      <option value="bmw">BMW</option>
+                      <option value="toyota">Toyota</option>
+                    </select>
+                    <select name="manuYear" class="btn btn-light dropdown-toggle">
+                      <option value="" disabled selected>Manu Year</option>
+                      <option value="y1">Under 2000</option>
+                      <option value="y2">2000-2010</option>
+                      <option value="y3">2010 up</option>
+                    </select>
+                    <select name="stars" class="btn btn-light dropdown-toggle">
+                      <option value="" disabled selected>Specialists Stars</option>
+                      <option value="s1">1</option>
+                      <option value="s2">2</option>
+                      <option value="s3">3</option>
+                    </select>
+                    <select name="location" class="btn btn-light dropdown-toggle">
+                      <option value="" disabled selected>Location</option>
+                      <option value="brisbane">Brisbane</option>
+                      <option value="sydney">Sydney</option>
+                      <option value="melburne">Melburne</option>
+                      <option value="perth">Perth</option>
+                    </select>
+                    <input type="submit" value="Search" class="btn btn-info">
+                  </div>
+                  <!-- <div class="col-md-4">
+                  </div> -->
+                </div>
+              </div>
+            <!-- </div> -->
+          </form>
+        </p>
+      </div>
+    </header>
+    
+
+    <div class="row text-center" style="display: flex; flex-wrap:wrap;">
+      {% for post in posts %}
+      <div class="col-md-3 col-sm-6">
+        <article class="media content-section">
+          <div class="media-body">
+            <div class="thumbnail">
+              <img src=# alt="">
+              <div class="caption">
+                <h4><a class="article-title" href="/Posts/{{post[0]}}">{{post[2]}}</a></h4>
+                {% set f = post[3] %}
+                <p>{{f[:100]}} .... </p>
+              </div>
+              <p>
+                <a href="/Posts/{{post[0]}}" class="btn btn-primary">More Info</a>
+              </p>
+            </div>
+           </div>
+          </article>
+      </div>
+      {% endfor %}
+    </div>
+
+    
+    <!-- {% for post in posts %}
+        <article class="media content-section">
+          <div class="media-body">
+            <h2><a class="article-title" href="/Posts/{{post[0]}}">{{post[2]}}</a></h2>
+            <p class="article-content">{{post[3]}}</p>
+            <p class="article-date">{{post[1]}}</p>
+            
+          </div>
+        </article>
+    {% endfor %} -->
+
+{% endblock content %}
+
+
+

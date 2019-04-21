@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<!-- <div class="container">
+    <% if(error && error.length > 0){ %>
+    <div class="alert alert-danger" role="alert">
+        <%= error %>
+    </div>
+    <% } %>
+    <% if(success && success.length > 0){ %>
+    <div class="alert alert-success" role="alert">
+        <%= success %>
+    </div>
+    <% } %>
+</div> -->
+
+<div id="landing-header">
+    <h1>Welcome to Second-hand car platform!</h1>
+    <a href="/Posts" class="btn btn-lg btn-success">View All Cars</a>
+</div>
+
+<ul class="slideshow">
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
+</ul>
+
+{% endblock content %}

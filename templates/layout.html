@@ -9,7 +9,9 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
-
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='landing.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js" type="text/javascript" async>
+    </script>
     {% if title %}
         <title>Project Template - {{ title }}</title>
     {% else %}
@@ -26,13 +28,13 @@
           </button>
           <div class="collapse navbar-collapse" id="navbarToggle">
             <div class="navbar-nav mr-auto">
-              <a class="nav-item nav-link" href="{{ url_for('home') }}">View Blogs</a>
+              <a class="nav-item nav-link" href="{{ url_for('Posts') }}">View Posts</a>
+              <a class="nav-item nav-link" href="/Posts/new">Add Post</a>
               <a class="nav-item nav-link" href="{{ url_for('register') }}">Add User</a>
-              <a class="nav-item nav-link" href="{{ url_for('blog') }}">Add Blog</a>
             </div>
             <!-- Navbar Right Side -->
             <div class="navbar-nav">
-              <a class="nav-item nav-link" href="{{ url_for('home') }}">Additional Items</a>
+              <a class="nav-item nav-link" href="{{ url_for('login_tmp') }}">LogIn</a>
             </div>
           </div>
         </div>
@@ -40,7 +42,7 @@
     </header>
     <main role="main" class="container">
       <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-12">
           {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
               {% for category, message in messages %}
@@ -52,7 +54,7 @@
           {% endwith %}
           {% block content %}{% endblock %}
         </div>
-        <div class="col-md-4">
+        <!-- <div class="col-md-4">
           <div class="content-section">
             <h3>Our Sidebar</h3>
             <p class='text-muted'>You can put any information here you'd like.
@@ -61,7 +63,7 @@
               </ul>
             </p>
           </div>
-        </div>
+        </div> -->
       </div>
     </main>
 
