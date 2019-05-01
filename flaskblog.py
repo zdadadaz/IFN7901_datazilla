@@ -238,9 +238,9 @@ def edit_post(name):
             # Add the new Post into the 'blogs' table in the database
             title = title.replace("'","''")
             content = content.replace("'","''")
-            print("==========image========",image)
+            # print("==========image========",image)
             query = 'UPDATE Post SET Date_post='+"'"+timestamp+"'" +',Title='+"'" +title+"'" +',Description='+"'" +content+"'" +',Location='+"'" +location+"'" +',Color='+"'" +color+"'" +',Car_type='+"'" +carType+"'" +',Brand='+"'" +brand+"'" +',Price='+str(price)+',manu_year='+str(manuYear)+',Sid='+str(specialist[0])+',Stars='+str(stars) + ',Imageid=' +str(image)+' WHERE Postid='+str(name)
-            c.execute(query) #Execute the query
+            c.execute(query) #Execute the que   ry
             conn.commit() #Commit the changes
 
             flash(f'Post edited for {user}!', 'success')
