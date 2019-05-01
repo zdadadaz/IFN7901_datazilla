@@ -17,4 +17,19 @@ class BlogForm(FlaskForm):
     content = TextAreaField('Content', validators=[DataRequired()])
     submit = SubmitField('Submit')
     
+class CarInfoForm(FlaskForm):
+    username = SelectField('Username', choices=[], coerce=int)
+    title = StringField('Title', validators=[DataRequired()])
+    content = TextAreaField('Content', validators=[DataRequired()])
+    location = StringField('Location', validators=[DataRequired()])
+    color = StringField('Color', validators=[DataRequired()])
+    carType = StringField('Car Type', validators=[DataRequired()])
+    brand = StringField('Brand', validators=[DataRequired()])
+    price = StringField('Price', validators=[DataRequired()])
+    manuYear = StringField('Manu Year', validators=[DataRequired()]) 
+    specialist = SelectField('Specialist', choices=[], coerce=int)
+    stars = SelectField('Stars', choices=[], coerce=int)
+    submit = SubmitField('Submit')
+
     
+        

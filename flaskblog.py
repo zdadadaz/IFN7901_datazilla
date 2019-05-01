@@ -2,7 +2,7 @@
 ### However the actual example uses sqlalchemy which uses Object Relational Mapper, which are not covered in this course. I have instead used natural sQL queries for this demo. 
 
 from flask import Flask, render_template, url_for, flash, redirect ,request
-from forms import RegistrationForm, BlogForm
+from forms import RegistrationForm, BlogForm, CarInfoForm
 import datetime
 import mysql.connector
 from util import json_io
