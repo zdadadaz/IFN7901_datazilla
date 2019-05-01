@@ -36,26 +36,26 @@
 }
 
 .slideshow li:nth-child(1) {
-    background-image: url(/static/data/benz.jpg);
+    background-image: url(/static/data/2.jpg);
 }
 
 .slideshow li:nth-child(2) {
-    background-image: url(/static/data/BMW.jpg);
+    background-image: url(/static/data/1.jpg);
     animation-delay: 6s;
 }
 
 .slideshow li:nth-child(3) {
-    background-image: url(/static/data/toyota.jpg);
+    background-image: url(/static/data/3.jpg);
     animation-delay: 12s;
 }
 
 .slideshow li:nth-child(4) {
-    background-image: url(/static/data/Hyundai.jpg);
+    background-image: url(/static/data/4.jpg);
     animation-delay: 18s;
 }
 
 .slideshow li:nth-child(5) {
-    background-image: url(/static/data/mazda.jpg);
+    background-image: url(/static/data/5.jpg);
     animation-delay: 24s;
 }
 

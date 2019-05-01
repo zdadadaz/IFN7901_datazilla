@@ -29,6 +29,7 @@ class CarInfoForm(FlaskForm):
     manuYear = StringField('Manu Year', validators=[DataRequired()]) 
     specialist = SelectField('Specialist', choices=[], coerce=int)
     stars = SelectField('Stars', choices=[], coerce=int)
+    image = StringField('Image ID', validators=[DataRequired()]) 
     submit = SubmitField('Submit')
 
     

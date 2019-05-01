@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
-    <header class="jumbotron">
+    <!-- <header class="jumbotron"> -->
       <div id="jumbotron_id" class="jumbotron">
         <h1>Welcome To Second-Hand Car Republic!</h1>
         <p>Find the car you like the most in few clicks</p>
@@ -61,7 +61,7 @@
           </form>
         </p>
       </div>
-    </header>
+    <!-- </header> -->
     
 
     <div class="row text-center" style="display: flex; flex-wrap:wrap;">
@@ -70,7 +70,7 @@
         <article class="media content-section">
           <div class="media-body">
             <div class="thumbnail">
-              <img src=# alt="">
+              <img class="img-responsive" src="../static/data/{{post[13]}}.jpg" alt="">
               <div class="caption">
                 <h4><a class="article-title" href="/Posts/{{post[0]}}">{{post[2]}}</a></h4>
                 {% set f = post[3] %}

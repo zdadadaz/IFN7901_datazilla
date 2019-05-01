@@ -16,7 +16,7 @@ config = {
   'user': 'root',
   'password': 'root',
   'unix_socket': '/Applications/MAMP/tmp/mysql/mysql.sock',
-  'database': '7901',
+  'database': '7901_2',
   'raise_on_warnings': True,
 }
 
@@ -233,11 +233,13 @@ def edit_post(name):
             brand  = form.brand.data
             price  = form.price.data
             manuYear = form.manuYear.data
+            image = form.image.data
             timestamp = datetime.datetime.now().strftime('%Y-%m-%d')
             # Add the new Post into the 'blogs' table in the database
             title = title.replace("'","''")
             content = content.replace("'","''")
-            query = 'UPDATE Post SET Date_post='+"'"+timestamp+"'" +',Title='+"'" +title+"'" +',Description='+"'" +content+"'" +',Location='+"'" +location+"'" +',Color='+"'" +color+"'" +',Car_type='+"'" +carType+"'" +',Brand='+"'" +brand+"'" +',Price='+str(price)+',manu_year='+str(manuYear)+',Sid='+str(specialist[0])+',Stars='+str(stars) +' WHERE Postid='+str(name)
+            print("==========image========",image)
+            query = 'UPDATE Post SET Date_post='+"'"+timestamp+"'" +',Title='+"'" +title+"'" +',Description='+"'" +content+"'" +',Location='+"'" +location+"'" +',Color='+"'" +color+"'" +',Car_type='+"'" +carType+"'" +',Brand='+"'" +brand+"'" +',Price='+str(price)+',manu_year='+str(manuYear)+',Sid='+str(specialist[0])+',Stars='+str(stars) + ',Imageid=' +str(image)+' WHERE Postid='+str(name)
             c.execute(query) #Execute the query
             conn.commit() #Commit the changes
 
@@ -267,7 +269,8 @@ def edit_post(name):
         form.brand.data = results[10]
         form.price.data = results[11]
         form.manuYear.data = results[12]
-        
+        form.image.data = results[16]
+
         # specialist
         c.execute("SELECT * FROM Specialist")
         specialist_res = c.fetchall()
@@ -276,6 +279,7 @@ def edit_post(name):
         form.stars.choices = ((0,(1)),(1,(2)),(2,(3)))
         form.stars.data = results[15]-1
         form.specialist.data = results[14]-1
+        
         return render_template('edit.html',title='Blog', form=form)    
         
 # add Post
@@ -320,11 +324,12 @@ def new():
         brand  = form.brand.data
         price  = form.price.data 
         manuYear = form.manuYear.data
+        image = form.image.data
         timestamp = datetime.datetime.now().strftime('%Y-%m-%d')
         title = title.replace("'","''")
         content = content.replace("'","''")
         #Add the new Post into the 'blogs' table in the database
-        query = 'insert into Post (Postid, Date_post, Title,Description,Location,Color,Car_type,Brand,Price,manu_year,Uid,Sid,Stars) VALUES (' + "'" + str(postnum) + "',"  + "'" + timestamp + "'," + "'" + title + "',"+ "'" + content + "',"  + "'" + location + "'," + "'" + color + "',"+ "'" + carType + "',"  + "'" + brand + "'," + "'" + price + "'," + "'" + manuYear + "'," + "'" + str(user[0]) + "'," + "'" + str(specialist[0]) + "'," + "'" + str(stars) + "'" ')' #Build the query
+        query = 'insert into Post (Postid, Date_post, Title,Description,Location,Color,Car_type,Brand,Price,manu_year,Uid,Sid,Stars,Imageid) VALUES (' + "'" + str(postnum) + "',"  + "'" + timestamp + "'," + "'" + title + "',"+ "'" + content + "',"  + "'" + location + "'," + "'" + color + "',"+ "'" + carType + "',"  + "'" + brand + "'," + "'" + price + "'," + "'" + manuYear + "'," + "'" + str(user[0]) + "'," + "'" + str(specialist[0]) + "'," + "'" + str(stars) + "'," + "'" + str(image) + "'" ')' #Build the query
         c.execute(query) #Execute the query
         conn.commit() #Commit the changes
 
