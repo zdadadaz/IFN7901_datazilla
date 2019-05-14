@@ -16,7 +16,7 @@ config = {
   'user': 'root',
   'password': 'root',
   'unix_socket': '/Applications/MAMP/tmp/mysql/mysql.sock',
-  'database': '7901_2',
+  'database': '7901_2_cas_trigger',
   'raise_on_warnings': True,
 }
 
@@ -347,6 +347,46 @@ def Post_delete(name):
     conn.commit() #Commit the changes
     return redirect(url_for('Posts'))
 
+@app.route("/figure", methods=['GET', 'POST'])
+def figure():
+    if request.method == 'GET':
+        title = []
+        users = []
+        return render_template('figure.html',titles=title,users= users)   
+    else:
+        title = []
+        users = []
+        option = request.form.get("special-query")
+        conn = mysql.connector.connect(**config)
+        conn.row_factory = lambda cursor, row: row[0]
+        c = conn.cursor()
+        if(option == "division"):
+            query= 'SELECT b.Uid,u.First_name,u.Last_name  FROM Buyer b, User u WHERE b.Uid=u.Uid AND NOT EXISTS (SELECT i.Inspect_id FROM Inspection i WHERE NOT EXISTS (SELECT bf.Inspect_id FROM Bookfor bf WHERE bf.Inspect_id = i.Inspect_id and bf.Uid = b.Uid))'
+            # query = 'SELECT Uid from Buyer'
+            c.execute(query) #Execute the query
+            rowdata = c.fetchall()
+            # lists = [(results.index(item), item) for item in results]
+            title = ('Item','User ID','First Name', 'Last Name')
+            
+        elif(option == "avgprice"):
+            # query= 'SELECT AVG(Price) FROM Post WHERE Stars = 1'
+            query = 'SELECT AVG(Price), Stars FROM Post GROUP BY Stars'
+            # query = 'SELECT Uid from Buyer'
+            c.execute(query) #Execute the query
+            rowdata = c.fetchall()
+            title = ('Item','Average Price ($AU)', 'Stars')
+        elif(option == "minwish"):
+            query = 'SELECT MIN(p.Price), MAX(p.Price) FROM Post p WHERE p.Postid IN (SELECT DISTINCT(c.Postid) FROM Contain c, Wishlist w WHERE c.Uid = w.Uid AND c.Wishid = w.Wishid AND c.Postid=p.Postid)'
+            c.execute(query) #Execute the query
+            rowdata = c.fetchall()
+            title = ('Item','Minimum Price ($AU)', 'Maximum Price ($AU)')
+
+        num = len(title)
+        return render_template('figure.html',titles = title, rows = rowdata,num=num)
+
+#     return redirect(url_for('Posts'))
+# return render_template('edit.html',title='Blog', form=form)    
+        
 
 if __name__ == '__main__':
     app.run(debug=True)

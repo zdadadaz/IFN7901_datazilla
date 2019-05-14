@@ -1,0 +1,66 @@
+   {% extends "layout.html" %}
+   {% block content %}
+   <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <p class="lead">Check Data with Figures</p>
+                <div class="list-group">
+                    <li class="list-group-item active">Information Garage</li>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <div class="content-section">
+                    <div class="form-group">
+                        <form method="POST" action="">
+                            <div class="dropdown">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <select name="special-query" class="btn btn-light dropdown-toggle">
+                                            <option value="" disabled selected>Special query</option>
+                                            <option value="division">Which user have inspection for all posts</option>
+                                            <option value="avgprice">Average car price for posts with 1,2,3 stars</option>
+                                            <option value="minwish">The posts in someone's wishlist with the lowest and highest price </option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="submit" value="Search" class="btn btn-info">
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+   </div>
+   
+ <div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <table class="table">
+                <thead>
+                    <tr>
+                        {% for title in titles %}
+                        <th scope="col">{{title}}
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                    <tr>
+                        <th scope="row">{{loop.index}}</th>
+                        {% for attr in row %}
+                        <td>{{attr}}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+ </div>
+
+
+    
+   {% endblock content %}
