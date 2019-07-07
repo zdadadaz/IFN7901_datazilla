@@ -1,10 +1,11 @@
 ### Example inspired by Tutorial at https://www.youtube.com/watch?v=MwZwr5Tvyxo&list=PL-osiE80TeTs4UjLw5MM6OjgkjFeUxCYH
 ### However the actual example uses sqlalchemy which uses Object Relational Mapper, which are not covered in this course. I have instead used natural sQL queries for this demo. 
 
-from flask import Flask, render_template, url_for, flash, redirect
+from flask import Flask, render_template, url_for, flash, redirect,request
 from forms import RegistrationForm, BlogForm
 import sqlite3
-
+import shlex, subprocess
+    
 conn = sqlite3.connect('blog.db')
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '5791628bb0b13ce0c676dfde280ba245'
@@ -29,6 +30,14 @@ def home():
     posts = c.fetchall()
     return render_template('home.html', posts=posts)
 
+@app.route("/audio",methods=['GET', 'POST'])
+def playmp3():
+    if request.method == 'POST':
+        command_line="ffplay -ss 00:01:03 -t 00:00:03 -autoexit ./static/data/Bigbang_s08e01.mp3"
+        args = shlex.split(command_line)
+        p = subprocess.Popen(args)
+    return render_template('playmp3.html')
+    
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
