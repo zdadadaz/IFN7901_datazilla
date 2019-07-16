@@ -27,8 +27,8 @@
           <div class="collapse navbar-collapse" id="navbarToggle">
             <div class="navbar-nav mr-auto">
               <a class="nav-item nav-link" href="{{ url_for('home') }}">View Blogs</a>
-              <a class="nav-item nav-link" href="{{ url_for('register') }}">Add User</a>
-              <a class="nav-item nav-link" href="{{ url_for('blog') }}">Add Blog</a>
+              <a class="nav-item nav-link" href="{{ url_for('playmp3') }}">Play</a>
+              <a class="nav-item nav-link" href="{{ url_for('upload') }}">Upload</a>
             </div>
             <!-- Navbar Right Side -->
             <div class="navbar-nav">
@@ -52,7 +52,7 @@
           {% endwith %}
           {% block content %}{% endblock %}
         </div>
-        <div class="col-md-4">
+        <!-- <div class="col-md-4">
           <div class="content-section">
             <h3>Our Sidebar</h3>
             <p class='text-muted'>You can put any information here you'd like.
@@ -61,7 +61,7 @@
               </ul>
             </p>
           </div>
-        </div>
+        </div> -->
       </div>
     </main>
 

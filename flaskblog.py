@@ -5,10 +5,25 @@ from flask import Flask, render_template, url_for, flash, redirect,request
 from forms import RegistrationForm, BlogForm
 import sqlite3
 import shlex, subprocess
-    
+import pandas as pd
+import mysql.connector
+import random
+
 conn = sqlite3.connect('blog.db')
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '5791628bb0b13ce0c676dfde280ba245'
+
+config = {
+  'user': 'root',
+  'password': 'root',
+  'unix_socket': '/Applications/MAMP/tmp/mysql/mysql.sock',
+  'database': 'Anki',
+  'raise_on_warnings': True,
+}
+# conn = mysql.connector.connect(**config)
+
+def addcomma(input):
+    return "'"+input+"'"
 
 #Turn the results from the database into a dictionary
 def dict_factory(cursor, row):
@@ -17,6 +32,43 @@ def dict_factory(cursor, row):
         d[col[0]] = row[idx]
     return d
 
+@app.route("/upload", methods=['GET', 'POST'])
+def upload():
+    if request.method == 'POST':
+        conn = mysql.connector.connect(**config)
+        c= conn.cursor()
+        vName= request.form.get('vName')
+        vSeason=request.form.get('vSeason')
+        vEpisode=request.form.get('vEpisode')
+        if (vName is not None) and (vSeason is not None) and (vEpisode is not None):
+            c.execute("SELECT vid FROM Video where vname=%s and season =%s and episode=%s " % (addcomma(vName),addcomma(vSeason),addcomma(vEpisode)) )
+            vidExist = c.fetchall()
+            
+        upfile = request.files.get('file')
+        print("print vid=============vidExist===================",vidExist)
+        print(not len(vidExist))
+        if (upfile is not None) and len(vidExist):
+            df = pd.read_excel(upfile) 
+            dflen = len(df.columns)
+            if dflen==4:
+                subset = df[['sstime', 'sftime', 'tran','org']]
+                query_insert = "insert into Subtitle(sstime,sftime,translation,org,vid) VALUES ("
+            elif dflen==3:
+                subset = df[['sstime', 'sftime', 'org']]
+                query_insert = "insert into Subtitle(sstime,sftime,org,vid) VALUES ("
+            tuples = [tuple(x) for x in subset.values]
+            for i in range(len(tuples)):
+                elementstr = addcomma(str(tuples[i][0]))
+                for j in range(1,dflen):
+                    elementstr = ' '.join([elementstr, ",", addcomma(str(tuples[i][j]).replace("'","''"))])
+                query = query_insert +  elementstr +","+addcomma(str(vidExist[0][0])) +')'
+                # print('query->',query)
+                c.execute(query)
+                conn.commit()
+        else:
+            print("no valid vid================================")
+        return render_template('upload.html')
+    return render_template('upload.html')
 
 @app.route("/")
 @app.route("/home")
@@ -33,7 +85,26 @@ def home():
 @app.route("/audio",methods=['GET', 'POST'])
 def playmp3():
     if request.method == 'POST':
-        command_line="ffplay -ss 00:01:03 -t 00:00:03 -autoexit ./static/data/Bigbang_s08e01.mp3"
+        conn = mysql.connector.connect(**config)
+        c= conn.cursor()
+        c.execute("SELECT count(*) FROM Subtitle")
+        totnum = c.fetchone()
+        # print(totnum[0])
+        randnum = int(random.random()*(totnum[0]-1))
+        # print(randnum)
+
+        low = randnum-1 if (randnum-1 >0) else 1
+        high = randnum if (randnum <totnum[0]) else totnum[0]
+        c.execute("SELECT * FROM Subtitle where sid>%s and sid <= %s " % (addcomma(str(low)),addcomma(str(high))) )
+        clip = c.fetchall()
+        print(clip)
+        stime = clip[0][1]
+        ftime= clip[len(clip)-1][2]
+        durtime = ftime-stime
+        print("------------------------------------")
+        print(stime,ftime, ftime-stime)
+        command_line="ffplay -ss " + str(stime) +" -t " + str(durtime) +" -autoexit ./static/data/Bigbang_s08e01.mp3"
+        # command_line="ffplay -ss 00:01:03 -t 00:00:03 -autoexit ./static/data/Bigbang_s08e01.mp3"
         args = shlex.split(command_line)
         p = subprocess.Popen(args)
     return render_template('playmp3.html')
