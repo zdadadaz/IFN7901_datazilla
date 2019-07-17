@@ -1,8 +1,53 @@
 {% extends "layout.html" %}
 {% block content %}
-<h1>test</h1>
-<form method="POST" action="/audio">
-<button class="btn btn-xs btn-danger">Replay</button>
-</form>
+<h1>Play with video</h1>
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <table border="1" , class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        {% for t in titles %}
+                            <th scope="col">{{ t }}</th>
+                        {% endfor %}
+                        <th scope="col">Vid</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in scripts %}
+                    <tr>
+                        <!-- <th scope="row">{{loop.index}}</th> -->
+                        {% for w in range(6) %}
+                            <td>{{ s[w] }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
+<form method="POST" action="/randplay">
+    <div class="row">
+        <div class="dropdown">
+            <label for="">Choose language</label>
+            <select name="lang" class="col-md-8 btn btn-light dropdown-toggle">
+                <option selected="selected">{{request.form['lang']}}</option>
+                <option value="en">English</option>
+                <option value="jp">Japanese</option>
+            </select>
+            <input name="adjusttime" type="number" value="{{ request.form['adjusttime'] }}" data-decimals="2" min="-20"
+                max="20" step="1">
+            <div class="col-md-4">
+                <input type="submit" value="Random play" class="btn btn-info ">
+            </div>
+        </div>
+    </div>
+    <!-- <button class="btn btn-xs btn-danger">Random play</button> -->
+</form>
+<form method="POST" action="/audio">
+    <button class="btn btn-xs btn-danger">Replay</button>
+</form>
 {% endblock content %}

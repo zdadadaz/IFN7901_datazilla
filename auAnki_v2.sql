@@ -12,6 +12,8 @@ vname varchar(50) NOT NULL,
 lang varchar(10) NOT NULL,
 season integer(5),
 episode integer(5),
+adjusttime integer(6) NOT NULL DEFAULT 0,
+vfilename varchar(50),
 PRIMARY KEY (vid)
 );
 
@@ -55,6 +57,6 @@ FOREIGN KEY (sid) REFERENCES `Subtitle`(sid) ON DELETE CASCADE
 INSERT INTO `User` (`userid`) VALUES
 ('zdadadaz');
 
-INSERT INTO `Video` (`vname`,`lang`,`season`,`episode`) VALUES
-('夏目友人帳','jp',4,1),
-('Big bang theory','en',8,2);
+-- INSERT INTO `Video` (`vname`,`lang`,`season`,`episode`) VALUES
+-- ('夏目友人帳','jp',4,1),
+-- ('Big bang theory','en',8,1);
