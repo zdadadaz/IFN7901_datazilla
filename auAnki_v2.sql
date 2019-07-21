@@ -1,8 +1,10 @@
 drop table if exists has;
 drop table if exists Voclist;
-drop table if exists User;
 drop table if exists Subtitle;
 drop table if exists Video;
+drop table if exists WordPhrase;
+drop table if exists WordBank;
+drop table if exists User;
 
 
 
@@ -38,9 +40,31 @@ PRIMARY KEY (uid)
 create table Voclist(
 uid integer(11) NOT NULL,
 vocid integer(11) NOT NULL,
-vname varchar(50) NOT NULL,
+vReview integer(11) DEFAULT 0,
 PRIMARY KEY (uid,vocid),
 FOREIGN KEY (uid) REFERENCES User(uid) ON DELETE CASCADE
+);
+
+create table WordBank(
+uid integer(11) NOT NULL,
+wid integer(11) NOT NULL,
+wName varchar(50) NOT NULL,
+org_exp varchar(1024),
+tran_exp varchar(1024),
+phrase varchar(1024),
+lang varchar(10) NOT NULL,
+PRIMARY KEY (uid,wid),
+FOREIGN KEY (uid) REFERENCES User(uid) ON DELETE CASCADE
+);
+
+create table WordPhrase(
+uid integer(11) NOT NULL,
+wid integer(11) NOT NULL,
+pid integer(11) NOT NULL,
+phrase varchar(1024),
+wReview integer(11) DEFAULT 0,
+PRIMARY KEY (uid,wid,pid),
+FOREIGN KEY (uid,wid) REFERENCES WordBank(uid,wid) ON DELETE CASCADE
 );
 
 create table has(
@@ -57,6 +81,9 @@ FOREIGN KEY (sid) REFERENCES `Subtitle`(sid) ON DELETE CASCADE
 INSERT INTO `User` (`userid`) VALUES
 ('zdadadaz');
 
--- INSERT INTO `Video` (`vname`,`lang`,`season`,`episode`) VALUES
--- ('夏目友人帳','jp',4,1),
--- ('Big bang theory','en',8,1);
+-- INSERT INTO `Voclist` (`uid`,`vocid`,`vname`,`uid`,`uid`) VALUES
+-- ('zdadadaz');
+
+-- INSERT INTO `Video` (`vname`,`lang`,`season`,`episode`,`adjusttime`,`vfilename`) VALUES
+-- ('夏目友人帳','jp',4,1,-7,'natsume_s04e01.m4a'),
+-- ('Big bang theory','en',8,1,-6,'Bigbang_s08e01.mp3');

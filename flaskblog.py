@@ -11,7 +11,21 @@ import random
 from datetime import timedelta
 from util import json_io
 from functools import wraps
+import requests
+from newsapi import NewsApiClient
+import numpy as np
 
+# Init
+newsapi = NewsApiClient(api_key='22947e3bd0e3484aacaa95a9f14c9779')
+
+# url = ('https://newsapi.org/v2/everything?'
+#        'q=Apple&'
+#        'sortBy=popularity&'
+#        'language=en&'
+#        'apiKey=22947e3bd0e3484aacaa95a9f14c9779')
+
+# r = requests.get(url)
+# print(r.json()) 
 
 conn = sqlite3.connect('blog.db')
 app = Flask(__name__)
@@ -25,11 +39,9 @@ config = {
   'raise_on_warnings': True,
 }
 # conn = mysql.connector.connect(**config)
-currentUser={}
+currentUser={"currentSid": [], "adjtime": 0, "lang": "en", "lineNum": 1,"uid":1}
 userio = json_io()
-currentUser=userio.read()
-# print("=====initial======================")
-# print(currentUser)
+userio.save_userid(currentUser)
 
 def addcomma(input):
     return "'"+input+"'"
@@ -143,14 +155,15 @@ def randomplay():
     conn = mysql.connector.connect(**config)
     c= conn.cursor()
     option = request.form.get("lang")
+    lineNum = request.form.get("lineNum")
     adjtime = request.form.get("adjusttime")
     if adjtime is None:
         adjtime=0
     elif adjtime=='':
         adjtime=currentUser['adjtime']  
     # adjtime = 0 if (adjtime is None or adjtime=='') else adjtime
-    
-    option = "en" if option is None else option
+    lineNum = 1 if lineNum =='' or lineNum is None else lineNum
+    option = "en" if option is None or option == '' else option
     print("========================")
     c.execute("SELECT (S.sid) FROM Subtitle S, Video V where S.vid = V.vid and V.lang="+addcomma((option)))
     totclips = c.fetchall()
@@ -159,7 +172,8 @@ def randomplay():
     print("========================")
     # print(totclips)
     print(totnum)
-    low = randnum-2 if (randnum-2 >0) else 1
+    lineNum = int(lineNum)
+    low = randnum-lineNum if (randnum-lineNum >0) else 1
     high = randnum if (randnum <totnum) else totnum
     print(low,high)
     low = totclips[low][0]
@@ -179,6 +193,7 @@ def randomplay():
     currentUser['currentSid'] = [i for i in range(low+1,high+1)]
     currentUser['lang']= option
     currentUser['adjtime']=int(adjtime)
+    currentUser['lineNum'] = int(lineNum)
     userio.save_userid(currentUser)
     
     stime = stime + timedelta(seconds = int(adjtime)) 
@@ -227,6 +242,149 @@ def Video_delete(vid):
     conn.commit() #Commit the changes
     return redirect(url_for('showVideo'))
 
+@app.route("/showList", methods=['GET'])
+@get_tempInfo
+def showList():
+    conn = mysql.connector.connect(**config)
+    c = conn.cursor()
+    uid = currentUser['uid']
+    c.execute("SELECT S.*,h.vocid FROM has h, Subtitle S where S.sid = h.sid and uid ="+str(uid))
+    title = ('stime','ftime','org','translation','vid','vocid')    
+    scripts = c.fetchall()
+    return render_template('showList.html',titles=title,scripts=scripts)
+
+@app.route("/showList/<string:vocidSid>", methods=['POST'])
+def voc_delete(vocidSid):
+    vocidSid = vocidSid.split('-')
+    vocid = vocidSid[0]
+    sid = vocidSid[1]
+    conn = mysql.connector.connect(**config)
+    c = conn.cursor()
+    uid = currentUser['uid']
+    query= 'DELETE FROM Voclist WHERE vocid='+str(vocid)+' and uid = '+str(uid)
+    print("uid ============",query)
+    
+    c.execute(query) #Execute the query
+    query= 'DELETE FROM has WHERE vocid='+str(vocid)+' and uid = '+str(uid) + ' and sid = '+str(sid)
+    c.execute(query) #Execute the query
+    conn.commit() #Commit the changes
+    return redirect(url_for('showList'))
+
+
+@app.route("/addlist/<string:sid>", methods=['POST'])
+@get_tempInfo
+def addToList(sid):
+    conn = mysql.connector.connect(**config)
+    c= conn.cursor()
+    uid= currentUser['uid']
+    c.execute("SELECT MAX(vocid) FROM Voclist WHERE uid="+addcomma(str(uid)))
+    numVoc = c.fetchone()
+    print("-=================numVoc=========")
+    print(numVoc[0])
+    print(type(numVoc[0]))
+    numVoc = int(numVoc[0])+1 if numVoc[0] is not None else 1
+    print(numVoc)
+    print(uid)
+    print(sid)
+    query_insert = "INSERT INTO `Voclist` (`uid`,`vocid`) VALUES ( %s,%s)" % \
+                        ((str(uid)),(str(numVoc)))
+    c.execute(query_insert)
+    query_insert = "INSERT INTO `has` (`uid`,`vocid`,`sid`) VALUES ( %s,%s,%s)" % \
+                        ((str(uid)),(str(numVoc)),(str(sid)))
+    c.execute(query_insert)
+    conn.commit() #Commit the changes
+    
+    title = ('stime','ftime','org','translation')
+    rangelist =currentUser['currentSid']
+    low = rangelist[0]-1
+    high = rangelist[len(rangelist)-1]
+    c.execute("SELECT S.*,V.vfilename FROM Subtitle S,Video V where V.vid=S.vid and sid>%s and sid <= %s " % ((str(low)),(str(high))) )
+    clip = c.fetchall()
+    return render_template('playmp3.html',titles=title, scripts=clip)
+
+@app.route("/output", methods=['POST'])
+@get_tempInfo
+def output():
+    conn = mysql.connector.connect(**config)
+    c = conn.cursor()
+    uid = currentUser['uid']
+    c.execute("SELECT S.org, S.translation FROM has h, Subtitle S where S.sid = h.sid and uid ="+str(uid))
+    scripts = c.fetchall()
+    df = pd.DataFrame(scripts)
+    df.columns = ["org","translation"]
+    print(df)
+    df.to_excel("./output/output.xlsx",index = False,index_label=None)
+    return redirect(url_for('showList'))
+
+@app.route("/wordlist", methods=['GET', 'POST'])
+@get_tempInfo
+def wordlist():
+    conn = mysql.connector.connect(**config)
+    c = conn.cursor()
+    uid = currentUser['uid']
+    titles = ('uid','wid','word','org_exp','trans_exp','phrase','language')
+    c.execute("SELECT * FROM WordBank where uid ="+str(uid))
+    words = c.fetchall()
+    if request.method == 'POST':
+        c.execute("SELECT MAX(wid) FROM WordBank WHERE uid="+addcomma(str(uid)))
+        numVoc = c.fetchone()
+        numVoc = int(numVoc[0])+1 if numVoc[0] is not None else 1
+        wid = numVoc
+        wName = request.form.get("wName")
+        org_exp = request.form.get("org_exp")
+        tran_exp = request.form.get("tran_exp")
+        phrase = request.form.get("phrase")
+        lang = request.form.get("lang")
+
+        query_insert = "INSERT INTO `WordBank` (`uid`,`wid`,`wName`,`org_exp`,`tran_exp`,`phrase`,`lang`) VALUES ( %s,%s,%s,%s,%s,%s,%s)" % \
+                            ((str(uid)),(str(wid)),addcomma(str(wName)),addcomma(str(org_exp)),addcomma(str(tran_exp)),addcomma(str(phrase)),addcomma(str(lang)))
+        c.execute(query_insert)
+        conn.commit() #Commit the changes
+        return redirect(url_for('wordlist'))    
+    return render_template('wordlist.html',words=words,titles=titles)
+
+@app.route("/wordlist/<string:wid>", methods=['POST'])
+def word_delete(wid):
+    conn = mysql.connector.connect(**config)
+    c = conn.cursor()
+    uid = currentUser['uid']
+    query= 'DELETE FROM WordBank WHERE wid='+str(wid)+' and uid = '+str(uid)
+    c.execute(query) #Execute the query
+    conn.commit() #Commit the changes
+    return redirect(url_for('wordlist'))
+
+@app.route("/wordtest", methods=['GET', 'POST'])
+@get_tempInfo
+def wordtest():
+    if request.method == 'POST':
+        lang = request.form.get("lang")
+        conn = mysql.connector.connect(**config)
+        c = conn.cursor()
+        uid = currentUser['uid']
+        c.execute("SELECT wid FROM WordBank where uid="+addcomma(str(uid)) +" and lang="+addcomma(lang))
+        totclips = c.fetchall()
+        totnum = len(totclips)
+        choices = np.random.choice(totnum, 3)
+        ind = int(choices[0])
+        ind = totclips[ind][0]
+        c.execute("SELECT * FROM WordBank where uid="+addcomma(str(uid)) +" and wid="+addcomma(str(ind)))
+        word = c.fetchone()
+        sourcelist='reddit-r-all,new-scientist,national-geographic,espn,buzzfeed,bbc-sport,abc-news-au,abc-news,\
+        bbc-news,the-verge,reuters,techcrunch,time,the-new-york-times,the-economist'
+        all_articles = newsapi.get_everything(q=word[2],
+                                      sources=sourcelist,
+                                      language=lang,
+                                      sort_by='relevancy',
+                                      page=1)
+        # check if the vocabulary in the description, make it underline.
+        # add description/ image url / article url/ words into html
+        print((all_articles['articles'][0]['description']))
+        return redirect(url_for('wordtest'))    
+    return render_template('wordtest.html')
+
+
+
+
 @app.route("/register", methods=['GET', 'POST'])
 def register():
     form = RegistrationForm()
@@ -244,35 +402,6 @@ def register():
         return redirect(url_for('home'))
     return render_template('register.html', title='Register', form=form)
 
-
-@app.route("/blog", methods=['GET', 'POST'])
-def blog():
-    conn = sqlite3.connect('blog.db')
-
-    #Display all usernames stored in 'users' in the Username field
-    conn.row_factory = lambda cursor, row: row[0]
-    c = conn.cursor()
-    c.execute("SELECT username FROM users")
-    results = c.fetchall()
-    users = [(results.index(item), item) for item in results]
-
-    form = BlogForm()
-    form.username.choices = users
-
-    if form.validate_on_submit():
-        choices = form.username.choices
-        user =  (choices[form.username.data][1])
-        title = form.title.data
-        content = form.content.data
-
-        #Add the new blog into the 'blogs' table in the database
-        query = 'insert into blogs (username, title, content) VALUES ('  + "'" + user + "',"  + "'" + title + "'," + "'" + content + "'"+ ')' #Build the query
-        c.execute(query) #Execute the query
-        conn.commit() #Commit the changes
-
-        flash(f'Blog created for {user}!', 'success')
-        return redirect(url_for('home'))
-    return render_template('blog.html', title='Blog', form=form)
 
 if __name__ == '__main__':
     app.run(debug=True)
