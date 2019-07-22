@@ -149,6 +149,59 @@ def playmp3():
         p = subprocess.Popen(args)
     return render_template('playmp3.html',titles=title, scripts=clip)
 
+@app.route("/playnext",methods=['POST'])
+@get_tempInfo
+def playnext():
+    title = ('stime','ftime','org','translation')
+    clip=['','','','']
+    conn = mysql.connector.connect(**config)
+    c= conn.cursor()
+    rangelist =currentUser['currentSid']
+    lineNum = currentUser['lineNum']
+    low = rangelist[0]-1 + int(lineNum)
+    high = rangelist[len(rangelist)-1] + int(lineNum)
+    currentUser['currentSid'] = [i for i in range(low+1,high+1)]
+    c.execute("SELECT S.*,V.vfilename FROM Subtitle S,Video V where V.vid=S.vid and sid>%s and sid <= %s " % ((str(low)),(str(high))) )
+    clip = c.fetchall()
+    stime = clip[0][1]
+    ftime= clip[len(clip)-1][2]
+    durtime = ftime-stime
+    # adjtime = request.form.get("adjusttime")
+    adjtime = currentUser['adjtime']
+    stime = stime + timedelta(seconds = int(adjtime)) 
+    command_line="ffplay -ss " + str(stime) +" -t " + str(durtime) +" -autoexit ./static/data/"+ clip[0][6]
+    # command_line="ffplay -ss 00:01:03 -t 00:00:03 -autoexit ./static/data/Bigbang_s08e01.mp3"
+    args = shlex.split(command_line)
+    p = subprocess.Popen(args)
+    return render_template('playmp3.html',titles=title, scripts=clip)
+    
+@app.route("/playprev",methods=['POST'])
+@get_tempInfo
+def playprev():
+    title = ('stime','ftime','org','translation')
+    clip=['','','','']
+    conn = mysql.connector.connect(**config)
+    c= conn.cursor()
+    rangelist =currentUser['currentSid']
+    lineNum = currentUser['lineNum']
+    low = rangelist[0]-1 - int(lineNum)
+    high = rangelist[len(rangelist)-1] - int(lineNum)
+    currentUser['currentSid'] = [i for i in range(low+1,high+1)]
+    c.execute("SELECT S.*,V.vfilename FROM Subtitle S,Video V where V.vid=S.vid and sid>%s and sid <= %s " % ((str(low)),(str(high))) )
+    clip = c.fetchall()
+    stime = clip[0][1]
+    ftime= clip[len(clip)-1][2]
+    durtime = ftime-stime
+    # adjtime = request.form.get("adjusttime")
+    adjtime = currentUser['adjtime']
+    stime = stime + timedelta(seconds = int(adjtime)) 
+    command_line="ffplay -ss " + str(stime) +" -t " + str(durtime) +" -autoexit ./static/data/"+ clip[0][6]
+    # command_line="ffplay -ss 00:01:03 -t 00:00:03 -autoexit ./static/data/Bigbang_s08e01.mp3"
+    args = shlex.split(command_line)
+    p = subprocess.Popen(args)
+    return render_template('playmp3.html',titles=title, scripts=clip)
+    
+
 @app.route("/randplay",methods=[ 'POST'])
 @get_tempInfo
 def randomplay():
