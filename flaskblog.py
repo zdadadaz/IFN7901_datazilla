@@ -39,7 +39,7 @@ config = {
   'raise_on_warnings': True,
 }
 # conn = mysql.connector.connect(**config)
-currentUser={"currentSid": [], "adjtime": 0, "lang": "en", "lineNum": 1,"uid":1}
+currentUser={"currentSid": [], "adjtime": 0, "lang": "en", "lineNum": 1,"uid":1,"vid":0}
 userio = json_io()
 userio.save_userid(currentUser)
 
@@ -132,9 +132,9 @@ def replay():
     conn = mysql.connector.connect(**config)
     c= conn.cursor()
     rangelist =currentUser['currentSid']
-    low = rangelist[0]-1
+    low = rangelist[0]
     high = rangelist[len(rangelist)-1]
-    c.execute("SELECT S.*,V.vfilename FROM Subtitle S,Video V where V.vid=S.vid and sid>%s and sid <= %s " % ((str(low)),(str(high))) )
+    c.execute("SELECT S.*,V.vfilename FROM Subtitle S,Video V where V.vid=S.vid and sid>=%s and sid < %s " % ((str(low)),(str(high))) )
     clip = c.fetchall()
     stime = clip[0][1]
     ftime= clip[len(clip)-1][2]
@@ -157,15 +157,18 @@ def playnext():
     c= conn.cursor()
     rangelist =currentUser['currentSid']
     lineNum = currentUser['lineNum']
-    low = rangelist[0]-1 + int(lineNum)
-    high = rangelist[len(rangelist)-1] + int(lineNum)
-    currentUser['currentSid'] = [i for i in range(low+1,high+1)]
-    c.execute("SELECT S.*,V.vfilename FROM Subtitle S,Video V where V.vid=S.vid and sid>%s and sid <= %s " % ((str(low)),(str(high))) )
+    low = int(rangelist[0])+int(lineNum)
+    high = int(rangelist[len(rangelist)-1]) + int(lineNum)
+    print("low,high")
+    print(low,high)
+    currentUser['currentSid'] = [i for i in range(low,high+1)]
+    c.execute("SELECT S.*,V.vfilename FROM Subtitle S,Video V where V.vid=S.vid and sid>=%s and sid < %s " % ((str(low)),(str(high))) )
     clip = c.fetchall()
     stime = clip[0][1]
     ftime= clip[len(clip)-1][2]
     durtime = ftime-stime
     # adjtime = request.form.get("adjusttime")
+    userio.save_userid(currentUser)    
     adjtime = currentUser['adjtime']
     stime = stime + timedelta(seconds = int(adjtime)) 
     command_line="ffplay -ss " + str(stime) +" -t " + str(durtime) +" -autoexit ./static/data/"+ clip[0][6]
@@ -183,10 +186,10 @@ def playprev():
     c= conn.cursor()
     rangelist =currentUser['currentSid']
     lineNum = currentUser['lineNum']
-    low = rangelist[0]-1 - int(lineNum)
-    high = rangelist[len(rangelist)-1] - int(lineNum)
-    currentUser['currentSid'] = [i for i in range(low+1,high+1)]
-    c.execute("SELECT S.*,V.vfilename FROM Subtitle S,Video V where V.vid=S.vid and sid>%s and sid <= %s " % ((str(low)),(str(high))) )
+    low = int(rangelist[0])- int(lineNum) if int(rangelist[0])- int(lineNum)>0 else 0
+    high = int(rangelist[len(rangelist)-1])-int(lineNum)
+    currentUser['currentSid'] = [i for i in range(low,high+1)]
+    c.execute("SELECT S.*,V.vfilename FROM Subtitle S,Video V where V.vid=S.vid and sid>=%s and sid < %s " % ((str(low)),(str(high))) )
     clip = c.fetchall()
     stime = clip[0][1]
     ftime= clip[len(clip)-1][2]
@@ -209,14 +212,17 @@ def playmp3():
         option = request.form.get("lang")
         lineNum = request.form.get("lineNum")
         adjtime = request.form.get("adjusttime")
+        vid = request.form.get("vid")
         # if adjtime is None or adjtime=='':
         #     adjtime=currentUser['adjtime']  
         adjtime = currentUser['adjtime'] if (adjtime is None or adjtime=='') else adjtime
         lineNum = 1 if lineNum =='' or lineNum is None else lineNum
+        vid = 0 if vid =='' or vid is None else vid
         option = "en" if option is None or option == '' else option
         currentUser['lang']= option
         currentUser['adjtime']=int(adjtime)
         currentUser['lineNum'] = int(lineNum)
+        currentUser['vid'] = int(vid)
         userio.save_userid(currentUser)    
         # return redirect(url_for('playmp3'))
         return render_template('playmp3.html',titles=title, scripts=clip)
@@ -231,8 +237,13 @@ def randomplay():
     
     option = currentUser['lang']
     lineNum = currentUser['lineNum']
+    vid = currentUser['vid']
+    if vid ==0:
+        vidquery = ''
+    else:
+        vidquery = ' and S.vid = ' + addcomma(str(vid))
     print("========================")
-    c.execute("SELECT (S.sid) FROM Subtitle S, Video V where S.vid = V.vid and V.lang="+addcomma((option)))
+    c.execute("SELECT (S.sid) FROM Subtitle S, Video V where S.vid = V.vid and V.lang="+addcomma((option))+ vidquery)
     totclips = c.fetchall()
     totnum = len(totclips)
     randnum = int(random.random()*(totnum-1))
@@ -240,14 +251,16 @@ def randomplay():
     # print(totclips)
     print(totnum)
     lineNum = int(lineNum)
-    low = randnum-lineNum if (randnum-lineNum >0) else 1
-    high = randnum if (randnum <totnum) else totnum
+    low = randnum if (randnum >=0) else 0
+    high = randnum+lineNum if (randnum+lineNum <totnum) else totnum
     print(low,high)
     low = totclips[low][0]
     high = totclips[high][0]
-    c.execute("SELECT S.*,V.adjusttime,V.vfilename FROM Subtitle S,Video V where S.vid=V.vid and S.sid>%s and S.sid <= %s and V.lang=%s" % (addcomma(str(low)),addcomma(str(high)), addcomma((option))) )
+    query = "SELECT S.*,V.adjusttime,V.vfilename FROM Subtitle S,Video V where S.vid=V.vid and S.sid>=%s and S.sid < %s and V.lang=%s" % (addcomma(str(low)),addcomma(str(high)), addcomma((option)))
+    c.execute( query + vidquery)
+    print(query + vidquery)
     clip = c.fetchall()
-    print(clip)
+    # print(clip)
     title = ('stime','ftime','org','translation')
     stime = clip[0][1]
     ftime= clip[len(clip)-1][2]
@@ -257,7 +270,7 @@ def randomplay():
     print("---------------qq---------------------")
     adjtime = clip[0][6] if (clip[0][6] != 0) else adjtime
     print(adjtime)
-    currentUser['currentSid'] = [i for i in range(low+1,high+1)]
+    currentUser['currentSid'] = [i for i in range(low,high+1)]
     currentUser['adjtime'] = adjtime
     userio.save_userid(currentUser)
     
@@ -267,6 +280,60 @@ def randomplay():
     args = shlex.split(command_line)
     p = subprocess.Popen(args)
     return render_template('playmp3.html',titles=title, scripts=clip)
+
+@app.route("/startheadplay",methods=[ 'POST'])
+@get_tempInfo
+def startheadplay():
+    conn = mysql.connector.connect(**config)
+    c= conn.cursor()
+    
+    option = currentUser['lang']
+    lineNum = currentUser['lineNum']
+    vid = currentUser['vid']
+    adjtime = currentUser['adjtime']
+    if vid ==0 or vid is None:
+        return redirect(url_for('playmp3'))
+    c.execute("SELECT (S.sid),S.sstime,V.adjusttime FROM Subtitle S, Video V where S.vid = V.vid and S.vid="+addcomma(str(vid)) )
+    totclips = c.fetchall()
+    print(totclips)
+    totnum = len(totclips)
+    adjtime = totclips[0][2] if (totclips[0][2] != 0) else adjtime
+    print(adjtime)
+    
+    lineNum = int(lineNum)
+    for i in range(totnum):
+        if totclips[i][1]+timedelta(seconds = int(adjtime)) >timedelta(seconds = int(0)):
+            low =i
+            high = i+lineNum
+            break
+    print("low,high")
+    print(low,high)
+    low = totclips[low][0]
+    high = totclips[high][0]
+    query = "SELECT S.*,V.adjusttime,V.vfilename FROM Subtitle S,Video V where S.vid=V.vid and S.sid>=%s and S.sid < %s and S.vid=%s" % (addcomma(str(low)),addcomma(str(high)), addcomma(str(vid)))
+    c.execute( query )
+    clip = c.fetchall()
+    print(clip)
+    title = ('stime','ftime','org','translation')
+    stime = clip[0][1]
+    ftime= clip[len(clip)-1][2]
+    durtime = ftime-stime
+    print("------------------------------------")
+    print(stime,ftime, ftime-stime)
+    print("---------------qq---------------------")
+    currentUser['currentSid'] = [i for i in range(low,high+1)]
+    currentUser['adjtime'] = adjtime
+    userio.save_userid(currentUser)
+    # error Argument '23:59:55' provided as input filename, but 'day,' was already specified.
+    stime = stime + timedelta(seconds = int(adjtime)) 
+    print(clip[0][7])
+    command_line="ffplay -ss " + str(stime) +" -t " + str(durtime) +" -autoexit ./static/data/"+ clip[0][7]
+    # command_line="ffplay -ss 00:01:03 -t 00:00:03 -autoexit ./static/data/Bigbang_s08e01.mp3"
+    print(command_line)
+    args = shlex.split(command_line)
+    p = subprocess.Popen(args)
+    return render_template('playmp3.html',titles=title, scripts=clip)
+
 
 @app.route("/showVideo/<string:vid>/edit", methods=['GET', 'POST'])
 def editVideo(vid):
@@ -363,7 +430,7 @@ def addToList(sid):
     rangelist =currentUser['currentSid']
     low = rangelist[0]-1
     high = rangelist[len(rangelist)-1]
-    c.execute("SELECT S.*,V.vfilename FROM Subtitle S,Video V where V.vid=S.vid and sid>%s and sid <= %s " % ((str(low)),(str(high))) )
+    c.execute("SELECT S.*,V.vfilename FROM Subtitle S,Video V where V.vid=S.vid and sid>=%s and sid < %s " % ((str(low)),(str(high))) )
     clip = c.fetchall()
     return render_template('playmp3.html',titles=title, scripts=clip)
 
